@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1036861548992",
+    "project_id": "bakeway-a7cfa",
+    "storage_bucket": "bakeway-a7cfa.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1036861548992:android:41028b50d08014e9828025",
+        "android_client_info": {
+          "package_name": "com.example.bakeway"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1036861548992-h405io3dinvmb025hham8ubg8dld351j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCemvUyf240MxN7pxj7iHTdcrNyE-FQ6DA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1036861548992-h405io3dinvmb025hham8ubg8dld351j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

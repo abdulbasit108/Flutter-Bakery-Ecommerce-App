@@ -1,0 +1,292 @@
+import 'dart:ui';
+
+import 'package:bakeway_app/model/bakery.dart';
+import 'package:bakeway_app/screens/home_screen/home_screen.dart';
+import 'package:bakeway_app/screens/seller_portal_screen/SellerPortal.dart';
+import 'package:bakeway_app/screens/seller_portal_screen/seller_sign_up_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+
+import '../../model/seller.dart';
+import '../../utils/utils.dart';
+import '../forgot_password.dart/forgot_password_screen.dart';
+import '../main_screen/main_screen.dart';
+import '../signup_screen/sign_up_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:bakeway_app/screens/widget/round_button.dart';
+
+class SellerSignInScreen extends StatefulWidget {
+  const SellerSignInScreen({Key? key}) : super(key: key);
+  @override
+  State<SellerSignInScreen> createState() => _SignInScreenState();
+}
+
+Future<List<Bakery>> loadShopItemsFromFirestore() async {
+  QuerySnapshot querySnapshot =
+      await FirebaseFirestore.instance.collection('bakery').get();
+
+  List<Bakery> bakeryData = [];
+
+  if (querySnapshot.docs.isNotEmpty) {
+    querySnapshot.docs.forEach((doc) {
+      Bakery bakeryData1 = Bakery.fromFirestore(doc);
+      bakeryData.add(bakeryData1);
+    });
+  }
+
+  return bakeryData;
+}
+
+class _SignInScreenState extends State<SellerSignInScreen> {
+  bool loading = false;
+  bool found = false;
+  late List<Bakery> _bakeryData = [];
+  final _formkey = GlobalKey<FormState>();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  CollectionReference bakery = FirebaseFirestore.instance.collection('bakery');
+
+  final _auth = FirebaseAuth.instance;
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+  }
+
+  void login() {
+    setState(() {
+      loading = true;
+    });
+    _auth
+        .signInWithEmailAndPassword(
+            email: emailController.text,
+            password: passwordController.text.toString())
+        .then((value) {
+      // utils().toastMessage(value.user!.email.toString());
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => SellerPortal()));
+      setState(() {
+        loading = false;
+      });
+    }).onError((error, stackTrace) {
+      debugPrint(error.toString());
+      Utils().toastMessage(error.toString());
+      setState(() {
+        loading = false;
+      });
+    });
+  }
+
+  Future<void> _loadData() async {
+    List<Bakery> bakery = await loadShopItemsFromFirestore();
+
+    setState(() {
+      _bakeryData = bakery;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _loadData();
+    return WillPopScope(
+        onWillPop: () async {
+          SystemNavigator.pop();
+          return true;
+        },
+        child: Scaffold(
+            backgroundColor: Colors.white,
+            body: SingleChildScrollView(
+                child: Column(children: [
+              Container(
+                child: Column(
+                  children: [
+                    Center(
+                      child: Image.asset("assets/images/logo.jpg"),
+                    ),
+                    Text(
+                      "SELLER PORTAL",
+                      style: TextStyle(
+                        fontFamily: "Poppins",
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Padding(
+                padding: EdgeInsets.only(left: 20),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                      child: Text(
+                    "Login",
+                    style: TextStyle(
+                      fontFamily: "Poppins",
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  )),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(left: 20),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                      child: Text(
+                    "Please sign in to continue",
+                    style: TextStyle(
+                      fontFamily: "Poppins",
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromRGBO(80, 80, 80, 1.0),
+                    ),
+                  )),
+                ),
+              ),
+              SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Form(
+                      key: _formkey,
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            style: TextStyle(color: Colors.white),
+                            keyboardType: TextInputType.emailAddress,
+                            controller: emailController,
+                            decoration: InputDecoration(
+                              hintText: 'Email',
+                              prefixIcon:
+                                  Icon(Icons.email, color: Colors.white),
+                              filled: true,
+                              fillColor: Color(0xFF424242),
+                              hintStyle: TextStyle(color: Colors.white),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 6, horizontal: 16),
+                            ),
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return 'Enter Email';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          TextFormField(
+                            style: TextStyle(color: Colors.white),
+                            keyboardType: TextInputType.text,
+                            controller: passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              hintText: 'Password',
+                              prefixIcon: Padding(
+                                padding:
+                                    EdgeInsets.only(left: 12.0, right: 12.0),
+                                child: Icon(Icons.lock, color: Colors.white),
+                              ),
+                              filled: true,
+                              fillColor: Color(0xFF424242),
+                              hintStyle: TextStyle(color: Colors.white),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 6, horizontal: 16),
+                            ),
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return 'Enter Password';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    RoundButton(
+                      title: 'Login',
+                      loading: loading,
+                      onTap: () {
+                        if (_formkey.currentState!.validate()) {
+                          for (int i = 0; i < _bakeryData.length; i++) {
+                            if (_bakeryData[i].email == emailController.text) {
+                              found = true;
+                              login();
+                              break;
+                            }
+                          }
+                          if (found == false) {
+                            Utils().toastMessage('No Bakery Found');
+                          }
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      ForgotPasswordScreen()));
+                        },
+                        child: Text("Forgot Password?")),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Don't have an account?"),
+                        TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          SellerSignUpScreen()));
+                            },
+                            child: Text("Sign up")),
+                      ],
+                    ),
+                    TextButton(
+                        onPressed: () {
+                          
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => MainScreen()));
+                        },
+                        child: Text("Go Back")),
+                    
+                  ],
+                ),
+              ),
+            ]))));
+  }
+}
